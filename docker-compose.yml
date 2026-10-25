@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: shilpai_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: shilpai_user
+      POSTGRES_PASSWORD: shilpai_secure_password
+      POSTGRES_DB: shilpai_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shilpai_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://shilpai_user:shilpai_secure_password@db:5432/shilpai_db
+      - SECRET_KEY=shilpai_production_docker_secret_key_8821
+      - UPLOAD_DIR=/app/uploads
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  postgres_data:
